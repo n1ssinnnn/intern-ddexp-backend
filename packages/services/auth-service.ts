@@ -3,6 +3,21 @@ import type { SignInRequest, SignUpRequest } from "../domains/dto/user";
 import type { User } from "../domains/entities/user";
 import type { UserRepository } from "../repositories/user-repo";
 
+function createHttpError(caught: unknown, fallbackMessage: string, fallbackStatus: number) {
+    const source = typeof caught === "object" && caught !== null
+        ? caught as { message?: unknown; status?: unknown; statusCode?: unknown }
+        : undefined;
+    const candidateStatus = Number(source?.statusCode ?? source?.status);
+    const status = Number.isInteger(candidateStatus) && candidateStatus >= 400 && candidateStatus <= 599
+        ? candidateStatus
+        : fallbackStatus;
+    const message = typeof source?.message === "string" && source.message.length > 0
+        ? source.message
+        : fallbackMessage;
+
+    return Object.assign(new Error(message), { status });
+}
+
 export class AuthService {
     constructor(
         private readonly auth: typeof Auth,
@@ -33,9 +48,7 @@ export class AuthService {
                 updatedAt: new Date(result.user.updatedAt),
             };
         } catch (err: unknown) {
-            const error = new Error("Cannot sign up") as Error & { status?: number };
-            error.status = 500;
-            throw error;
+            throw createHttpError(err, "Cannot sign up", 500);
         }
     }
 
@@ -51,22 +64,19 @@ export class AuthService {
 
         // Sign in
         try {
-            const result = await this.auth.api.signInEmail({
+            return await this.auth.api.signInEmail({
                 body: {
                     email: input.email,
                     password: input.password,
                     rememberMe: false,
                 },
                 headers,
-                asResponse: true
-            })
+            });
         }
 
         // Catch any errors
         catch (err: unknown) {
-            const error = new Error("Invalid email or password") as Error & { status?: number };
-            error.status = 401;
-            throw error;
+            throw createHttpError(err, "Invalid email or password", 401);
         }
     }
 
@@ -82,17 +92,14 @@ export class AuthService {
 
         // Sign out
         try {
-            const result = await this.auth.api.signOut({
+            return await this.auth.api.signOut({
                 headers,
-                asResponse: true
             });
         }
 
         // Catch any errors
         catch (err: unknown) {
-            const error = new Error('Cannot sign out') as Error & { status?: number };
-            error.status = 500
-            throw error
+            throw createHttpError(err, "Cannot sign out", 500);
         }
     }
 }
