@@ -1,17 +1,45 @@
 import { Elysia, Context } from "elysia";
+import cors from '@elysia/cors'
+import openapi from "@elysia/openapi";
 import { auth } from "./lib/auth";
+import { authRoute } from "./routers/auth-route";
 
-const betterAuthView = (context: Context) => {
-  const BETTER_AUTH_ACCEPT_METHODS = ["POST", "GET"]
-  // validate request method
-  if (BETTER_AUTH_ACCEPT_METHODS.includes(context.request.method)) {
-    return auth.handler(context.request);
-  } else {
-    context.status(405)
-  }
-}
+const app = new Elysia()
 
-const app = new Elysia().all("/api/auth/*", betterAuthView).listen(3001);
+  // CORS
+  .use(
+    cors({
+      origin: "http://localhost:3001",
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  )
+
+  // OpenAPI docs
+  .use(
+    openapi({
+      documentation: {
+        info: {
+          title: 'Intern backend API',
+          version: '1.0.0',
+          description: 'Elysia + Bun + Better Auth + Drizzle ORM',
+        },
+        tags: [
+          { name: 'Auth', description: 'Authentication endpoints' },
+        ],
+      },
+    }),
+  )
+
+  // Mount
+  .mount(auth.handler)
+
+  // API routes 
+  .group('/api/v1', (app) => app.use(authRoute))
+
+  .listen(3001);
+
 console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}/openapi`,
 );

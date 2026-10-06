@@ -32,10 +32,10 @@ export class AuthService {
                 createdAt: new Date(result.user.createdAt),
                 updatedAt: new Date(result.user.updatedAt),
             };
-        } catch (error: unknown) {
-            const err = new Error("Cannot sign up") as Error & { status?: number };
-            err.status = 500;
-            throw err;
+        } catch (err: unknown) {
+            const error = new Error("Cannot sign up") as Error & { status?: number };
+            error.status = 500;
+            throw error;
         }
     }
 
@@ -44,7 +44,7 @@ export class AuthService {
         // User already signed in
         const existingSession = await this.auth.api.getSession({ headers })
         if (existingSession) {
-            const error = new Error('User is already signed in.') as any;
+            const error = new Error('User is already signed in.') as Error & { status?: number };
             error.status = 409
             throw error;
         }
@@ -75,7 +75,7 @@ export class AuthService {
         // No active session ( do not signed in )
         const session = await this.auth.api.getSession({ headers })
         if (!session) {
-            const error = new Error('No active session found') as any;
+            const error = new Error('No active session found') as Error & { status?: number };
             error.status = 401
             throw error;
         }
@@ -89,7 +89,7 @@ export class AuthService {
         }
 
         // Catch any errors
-        catch (error: unknown) {
+        catch (err: unknown) {
             const error = new Error('Cannot sign out') as Error & { status?: number };
             error.status = 500
             throw error

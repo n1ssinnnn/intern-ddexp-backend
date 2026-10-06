@@ -5,12 +5,13 @@ import { relations } from "drizzle-orm";
 
 export const users = pgTable('users', {
     id: t.text('id').primaryKey(),
-    firstName: t.text('firstName').notNull(),
-    lastName: t.text('lastName').notNull(),
+    firstName: t.text('firstName'),
+    lastName: t.text('lastName'),
     name: t.text('name').notNull(),
+    image: t.text("image"),
     email: t.text('email').notNull().unique(),
     emailVerified: t.boolean('email_verified').default(false).notNull(),
-    company: t.text('company').notNull().unique(),
+    company: t.text('company'),
     companyImageUrl: t.text('company_image_url'),
     role: t.text('role').$type<UserRole>().default('user').notNull(),
     isActive: t.boolean('is_active').default(true).notNull(),

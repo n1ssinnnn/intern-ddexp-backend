@@ -8,6 +8,13 @@
       "when": 1791193689857,
       "tag": "0000_powerful_valeria_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791269917577,
+      "tag": "0001_special_molten_man",
+      "breakpoints": true
     }
   ]
 }
