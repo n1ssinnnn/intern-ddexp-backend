@@ -28,9 +28,13 @@ export class AuthService {
         try {
             const result = await this.auth.api.signUpEmail({
                 body: {
+                    firstName: input.firstName,
+                    lastName: input.lastName,
+                    company: input.company,
                     name: `${input.firstName} ${input.lastName}`,
                     email: input.email,
                     password: input.password,
+                    ...(input.companyImageUrl ? { companyImageUrl: input.companyImageUrl } : {}),
                 },
             });
             return {
@@ -38,6 +42,7 @@ export class AuthService {
                 firstName: input.firstName,
                 lastName: input.lastName,
                 name: result.user.name,
+                image: result.user.image ?? null,
                 email: result.user.email,
                 emailVerified: result.user.emailVerified,
                 company: input.company,
@@ -71,6 +76,7 @@ export class AuthService {
                     rememberMe: false,
                 },
                 headers,
+                asResponse: true,
             });
         }
 
@@ -94,6 +100,7 @@ export class AuthService {
         try {
             return await this.auth.api.signOut({
                 headers,
+                asResponse: true,
             });
         }
 

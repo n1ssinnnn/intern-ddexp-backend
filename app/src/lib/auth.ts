@@ -13,6 +13,36 @@ export const auth = betterAuth({
             verification: verifications,
         },
     }),
+    user: {
+        additionalFields: {
+            firstName: {
+                type: "string",
+                required: true,
+                input: true,
+            },
+            lastName: {
+                type: "string",
+                required: true,
+                input: true,
+            },
+            company: {
+                type: "string",
+                required: true,
+                input: true,
+            },
+            companyImageUrl: {
+                type: "string",
+                required: false,
+                input: true,
+            },
+            role: {
+                type: "string",
+                required: false,
+                defaultValue: "user",
+                input: false,
+            },
+        },
+    },
     emailAndPassword: {
         enabled: true,
     },

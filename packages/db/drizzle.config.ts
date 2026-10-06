@@ -1,4 +1,4 @@
-import { defineConfig } from '../../app/node_modules/drizzle-kit';
+import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
     out: './packages/db/drizzle',

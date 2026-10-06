@@ -27,7 +27,8 @@ export const authRoute = new Elysia({
                 lastName: t.String({ minLength: 1 }),
                 email: t.String({ format: 'email' }),
                 company: t.String({ minLength: 1 }),
-                companyImageUrl: t.String({ minLength: 1 }),
+                companyImageUrl: t.Optional(t.String()),
+                role: t.Optional(t.String()),
                 password: t.String({ minLength: 1 }),
             }),
             response: {

@@ -3,12 +3,13 @@ export type UserStatus = boolean
 
 export type User = {
     id: string
-    firstName: string | null
-    lastName: string | null
+    firstName: string
+    lastName: string
     name: string
+    image: string | null
     email: string
     emailVerified: boolean
-    company: string | null
+    company: string
     companyImage: string | null
     role: UserRole
     status: UserStatus

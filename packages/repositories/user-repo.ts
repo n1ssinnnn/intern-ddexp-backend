@@ -12,6 +12,7 @@ export class UserRepository {
             firstName: row.firstName,
             lastName: row.lastName,
             name: row.name,
+            image: row.image,
             email: row.email,
             emailVerified: row.emailVerified,
             company: row.company,
