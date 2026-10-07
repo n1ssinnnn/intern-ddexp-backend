@@ -1,7 +1,6 @@
 import { pgTable } from "drizzle-orm/pg-core";
 import * as t from "drizzle-orm/pg-core";
 import type { UserRole } from "../domains/entities/user";
-import { defineRelations } from "drizzle-orm";
 
 export const users = pgTable('users', {
     id: t.text('id').primaryKey(),

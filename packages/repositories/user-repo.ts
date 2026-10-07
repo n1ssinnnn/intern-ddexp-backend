@@ -1,7 +1,7 @@
 import { db } from '../db';
-import { Schema } from '../db/schema'
+import { Schema, users } from '../db/schema'
 import type { User } from '../domains/entities/user';
-import { isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 
 type UserQueryRow = typeof Schema.users.$inferSelect
 
@@ -27,12 +27,43 @@ export class UserRepository {
         };
     }
 
-    async findAll(): Promise<User[]> {
-        const rows = await db
-            .select()
-            .from(this.table)
-            .where(isNull(this.table.deletedAt));
+    async findById(id: string): Promise<User | null> {
+        const row = await db.query.users.findFirst({
+            where: {
+                id: { eq: id },
+                deletedAt: { isNull: true },
+            }
+        });
 
-        return rows.map((row) => this.mapToEntity(row));
+        if (!row) {
+            return null;
+        }
+
+        return this.mapToEntity(row as UserQueryRow);
+    }
+
+    async findByEmail(email: string): Promise<User | null> {
+        const row = await db.query.users.findFirst({
+            where: {
+                email: { eq: email },
+                deletedAt: { isNull: true },
+            }
+        });
+
+        if (!row) {
+            return null;
+        }
+
+        return this.mapToEntity(row as UserQueryRow);
+    }
+
+    async findAll(): Promise<User[]> {
+        const rows = await db.query.users.findMany({
+            where: {
+                deletedAt: { isNull: true }
+            }
+        })
+
+        return rows.map((row) => this.mapToEntity(row as UserQueryRow));
     }
 }

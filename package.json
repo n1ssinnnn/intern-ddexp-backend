@@ -3,6 +3,9 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "workspaces": [
+    "app"
+  ],
   "devDependencies": {
     "@types/bun": "latest",
     "@types/pg": "^8.23.1",
@@ -17,5 +20,9 @@
     "elysia": "^1.4.30",
     "pg": "^8.23.1",
     "postgres": "^3.4.9"
+  },
+  "scripts": {
+    "generate": "bunx --bun drizzle-kit generate --config=packages/db/drizzle.config.ts --name ${name}",
+    "dev": "bun --env-file .env --filter app --elide-lines=0 dev"
   }
 }

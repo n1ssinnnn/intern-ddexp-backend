@@ -1,4 +1,4 @@
-import { auth as Auth } from "../../app/src/lib/auth"; // path to your Better Auth server instance
+import { auth as Auth } from "../auth"; // path to your Better Auth server instance
 import type { SignInRequest, SignUpRequest } from "../domains/dto/user";
 import type { User } from "../domains/entities/user";
 import type { UserRepository } from "../repositories/user-repo";
@@ -25,6 +25,12 @@ export class AuthService {
     ) { }
 
     async signUp(input: SignUpRequest): Promise<User> {
+
+        const hasExistingEmail = await this.userRepo.findByEmail(input.email)
+        if (hasExistingEmail) {
+            throw new Error('This email is already registered.');
+        }
+
         try {
             const result = await this.auth.api.signUpEmail({
                 body: {
@@ -37,21 +43,13 @@ export class AuthService {
                     ...(input.companyImageUrl ? { companyImageUrl: input.companyImageUrl } : {}),
                 },
             });
-            return {
-                id: result.user.id,
-                firstName: input.firstName,
-                lastName: input.lastName,
-                name: result.user.name,
-                image: result.user.image ?? null,
-                email: result.user.email,
-                emailVerified: result.user.emailVerified,
-                company: input.company,
-                companyImage: input.companyImageUrl ?? null,
-                role: "user",
-                status: true,
-                createdAt: new Date(result.user.createdAt),
-                updatedAt: new Date(result.user.updatedAt),
-            };
+
+            const user = await this.userRepo.findById(result.user.id);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            return user;
+
         } catch (err: unknown) {
             throw createHttpError(err, "Cannot get users", 500);
         }

@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import cors from '@elysia/cors'
 import openapi from "@elysia/openapi";
-import { auth } from "./lib/auth";
+import { auth } from "../../packages/auth";
 import { authRoute } from "./routers/auth-route";
 import { userRoute } from "./routers/user-route";
 
