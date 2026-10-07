@@ -23,6 +23,7 @@
   },
   "scripts": {
     "generate": "bunx --bun drizzle-kit generate --config=packages/db/drizzle.config.ts --name ${name}",
-    "dev": "bun --env-file .env --filter app --elide-lines=0 dev"
+    "dev": "bun --env-file .env --filter app --elide-lines=0 dev",
+    "db:studio": "bun --env-file .env drizzle-kit studio --config=packages/db/drizzle.config.ts"
   }
 }

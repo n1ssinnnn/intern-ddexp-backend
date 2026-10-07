@@ -33,7 +33,19 @@ export const userRoute = new Elysia({
         }
     )
 
-    .get('/getById', '')
+    .get('/:id',
+        async ({ params }) => {
+            return userService.getUserById(params.id);
+        },
+        {
+            response: {
+                401: errorResponse,
+                409: errorResponse,
+                422: errorResponse,
+                500: errorResponse,
+            },
+        }
+    )
 
     .patch('/edit', '')
 

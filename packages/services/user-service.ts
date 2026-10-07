@@ -14,7 +14,18 @@ export class UserService {
         }
 
         catch (err: unknown) {
-            throw createHttpError(err, "Cannot sign up", 500);
+            throw createHttpError(err, "Cannot find users", 500);
+        }
+    }
+
+    async getUserById(id: string): Promise<User | null> {
+        try {
+            const user = await this.userRepo.findById(id);
+            return user
+        }
+
+        catch (err: unknown) {
+            throw createHttpError(err, "Cannot find user", 500);
         }
     }
 }
