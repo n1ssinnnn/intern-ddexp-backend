@@ -21,11 +21,29 @@ export class UserService {
     async getUserById(id: string): Promise<User | null> {
         try {
             const user = await this.userRepo.findById(id);
+            if (!user) {
+                throw new Error('User not found')
+            }
             return user
         }
 
         catch (err: unknown) {
             throw createHttpError(err, "Cannot find user", 500);
+        }
+    }
+
+    async deleteUser(id: string): Promise<void> {
+        const user = await this.userRepo.findById(id);
+        if (!user) {
+            throw new Error('User not found')
+        }
+
+        try {
+            await this.userRepo.delete(id)
+        }
+
+        catch (err: unknown) {
+            throw createHttpError(err, "Error", 500);
         }
     }
 }

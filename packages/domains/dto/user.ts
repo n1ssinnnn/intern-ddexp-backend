@@ -12,3 +12,13 @@ export type SignInRequest = {
     password: string;
     rememberMe?: boolean;
 }
+
+export type CreateUserRequest = {
+    firstName: string
+    lastName: string
+    email: string
+    company: string
+    role: string
+    password: string
+    confirmedPassword: string
+}

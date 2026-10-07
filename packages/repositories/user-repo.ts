@@ -1,6 +1,7 @@
 import { db } from '../db';
-import { Schema, users } from '../db/schema'
-import type { User } from '../domains/entities/user';
+import { accounts, Schema, users } from '../db/schema'
+import type { CreateUserRequest } from '../domains/dto/user';
+import type { User, UserRole } from '../domains/entities/user';
 import { and, eq, isNull } from 'drizzle-orm';
 
 type UserQueryRow = typeof Schema.users.$inferSelect
@@ -65,5 +66,36 @@ export class UserRepository {
         })
 
         return rows.map((row) => this.mapToEntity(row as UserQueryRow));
+    }
+
+    // async create(input: CreateUserRequest): Promise<User> {
+    //     const newUser = await db.insert(users).values({
+    //         firstName: input.firstName,
+    //         lastName: input.lastName,
+    //         email: input.email,
+    //         company: input.company,
+    //         role: input.role as UserRole,
+    //         password: input.password
+    //     })
+    //         .returning();
+
+    //     const createdUser = newUser[0];
+    //     return this.mapToEntity(createdUser);
+    // }
+
+    async delete(id: string): Promise<void> {
+        try {
+            await db.update(users).set({
+                isActive: false,
+                deletedAt: new Date(),
+                updatedAt: new Date(),
+            })
+                .where(and(eq(users.id, id), isNull(users.deletedAt)));
+
+            await db.delete(accounts).where(eq(accounts.accountId, id));
+        }
+        catch (error) {
+            console.error(error)
+        }
     }
 }

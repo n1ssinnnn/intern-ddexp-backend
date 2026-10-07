@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import { userService } from '../service-di';
+import { userIdParams } from '../requests/user';
 
 const errorResponse = t.Object({
     error: t.String(),
@@ -44,9 +45,23 @@ export const userRoute = new Elysia({
                 422: errorResponse,
                 500: errorResponse,
             },
+            params: userIdParams
         }
     )
 
     .patch('/edit', '')
 
-    .delete('/', '')
+    .delete('/:id',
+        async ({ params }) => {
+            return userService.deleteUser(params.id);
+        },
+        {
+            response: {
+                401: errorResponse,
+                409: errorResponse,
+                422: errorResponse,
+                500: errorResponse,
+            },
+            params: userIdParams
+        }
+    )
