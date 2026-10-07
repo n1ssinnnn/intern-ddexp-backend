@@ -3,7 +3,7 @@ export type SignUpRequest = {
     lastName: string;
     email: string;
     company: string;
-    companyImageUrl?: string | null;
+    companyImageUrl?: string;
     password: string;
 }
 
@@ -20,5 +20,13 @@ export type CreateUserRequest = {
     company: string
     role: string
     password: string
-    confirmedPassword: string
+    confirmPassword: string
 }
+
+export type UpdateUserInput = {
+    firstName: string
+    lastName: string
+    email: string
+    company: string
+    role: string
+}   

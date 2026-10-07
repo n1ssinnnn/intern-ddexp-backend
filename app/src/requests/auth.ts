@@ -6,7 +6,6 @@ export const signUpRequest = t.Object({
     email: t.String({ format: 'email' }),
     company: t.String({ minLength: 1 }),
     companyImageUrl: t.Optional(t.String()),
-    role: t.Optional(t.String()),
     password: t.String({ minLength: 1 }),
 });
 

@@ -1,6 +1,6 @@
 import { auth as Auth } from "../auth"; // path to your Better Auth server instance
-import type { SignInRequest, SignUpRequest } from "../domains/dto/user";
-import type { User } from "../domains/entities/user";
+import type { CreateUserRequest, SignInRequest, SignUpRequest } from "../domains/dto/user";
+import type { User, UserRole } from "../domains/entities/user";
 import type { UserRepository } from "../repositories/user-repo";
 
 export function createHttpError(caught: unknown, fallbackMessage: string, fallbackStatus: number) {
@@ -26,21 +26,23 @@ export class AuthService {
 
     async signUp(input: SignUpRequest): Promise<User> {
 
+        // Email exist
         const hasExistingEmail = await this.userRepo.findByEmail(input.email)
         if (hasExistingEmail) {
             throw new Error('This email is already registered.');
         }
 
+        // Sign up
         try {
             const result = await this.auth.api.signUpEmail({
                 body: {
                     firstName: input.firstName,
                     lastName: input.lastName,
-                    company: input.company,
                     name: `${input.firstName} ${input.lastName}`,
                     email: input.email,
+                    company: input.company,
                     password: input.password,
-                    ...(input.companyImageUrl ? { companyImageUrl: input.companyImageUrl } : {}),
+                    companyImageUrl: input.companyImageUrl
                 },
             });
 
@@ -48,7 +50,12 @@ export class AuthService {
             if (!user) {
                 throw new Error('User not found');
             }
+
             return user;
+            // const updateUser = await this.userRepo.update(user.id, { role: input.role })
+
+            // console.log(updateUser)
+            // return updateUser;
 
         } catch (err: unknown) {
             throw createHttpError(err, "Cannot get users", 500);
@@ -105,6 +112,47 @@ export class AuthService {
         // Catch any errors
         catch (err: unknown) {
             throw createHttpError(err, "Cannot sign out", 500);
+        }
+    }
+
+    async createUserByAdmin(input: CreateUserRequest, headers: Headers): Promise<User> {
+
+        // Email exist
+        const hasExistingEmail = await this.userRepo.findByEmail(input.email)
+        if (hasExistingEmail) {
+            throw new Error('This email is already registered.');
+        }
+
+        //Validate password and confirmPassword
+        if (input.password !== input.confirmPassword) {
+            throw new Error('Password and confirmPassword do not match');
+        }
+
+        // Create
+        try {
+            const result = await this.auth.api.createUser({
+                body: {
+                    name: `${input.firstName} ${input.lastName}`,
+                    email: input.email,
+                    password: input.password,
+                    role: input.role as UserRole,
+
+                    data: {
+                        firstName: input.firstName,
+                        lastName: input.lastName,
+                        company: input.company,
+                    }
+                },
+                headers
+            })
+            const user = await this.userRepo.findById(result.user.id);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            return user;
+        }
+        catch (err: unknown) {
+            throw createHttpError(err, "Cannot get users", 500);
         }
     }
 }

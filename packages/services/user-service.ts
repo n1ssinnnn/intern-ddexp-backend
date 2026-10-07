@@ -1,3 +1,5 @@
+import type { UpdateUserInput } from "../domains/dto/user";
+import type { OrderingParams, PagingParams, PagingResult } from "../domains/entities/common";
 import type { User } from "../domains/entities/user";
 import type { UserRepository } from "../repositories/user-repo";
 import { createHttpError } from "./auth-service";
@@ -7,9 +9,9 @@ export class UserService {
         private readonly userRepo: UserRepository
     ) { }
 
-    async getAllUsers(): Promise<User[]> {
+    async getAllUsers(paging: PagingParams, ordering: OrderingParams<User>): Promise<PagingResult<User>> {
         try {
-            const users = await this.userRepo.findAll();
+            const users = await this.userRepo.findAll(paging, ordering);
             return users
         }
 
@@ -29,6 +31,28 @@ export class UserService {
 
         catch (err: unknown) {
             throw createHttpError(err, "Cannot find user", 500);
+        }
+    }
+
+    async editUser(id: string, input: UpdateUserInput): Promise<User> {
+
+        // Email exist
+        const hasExistingEmail = await this.userRepo.findByEmail(input.email)
+        if (hasExistingEmail) {
+            throw new Error('This email is already registered.');
+        }
+
+        // Update 
+        try {
+            const result = await this.userRepo.update(id, {
+                ...input
+            })
+            return result;
+        }
+
+
+        catch (err: unknown) {
+            throw createHttpError(err, "Error", 500);
         }
     }
 
