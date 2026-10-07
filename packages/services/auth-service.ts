@@ -3,7 +3,7 @@ import type { SignInRequest, SignUpRequest } from "../domains/dto/user";
 import type { User } from "../domains/entities/user";
 import type { UserRepository } from "../repositories/user-repo";
 
-function createHttpError(caught: unknown, fallbackMessage: string, fallbackStatus: number) {
+export function createHttpError(caught: unknown, fallbackMessage: string, fallbackStatus: number) {
     const source = typeof caught === "object" && caught !== null
         ? caught as { message?: unknown; status?: unknown; statusCode?: unknown }
         : undefined;
@@ -53,7 +53,7 @@ export class AuthService {
                 updatedAt: new Date(result.user.updatedAt),
             };
         } catch (err: unknown) {
-            throw createHttpError(err, "Cannot sign up", 500);
+            throw createHttpError(err, "Cannot get users", 500);
         }
     }
 

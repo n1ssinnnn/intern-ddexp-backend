@@ -1,7 +1,7 @@
 import { pgTable } from "drizzle-orm/pg-core";
 import * as t from "drizzle-orm/pg-core";
 import type { UserRole } from "../domains/entities/user";
-import { relations } from "drizzle-orm";
+import { defineRelations } from "drizzle-orm";
 
 export const users = pgTable('users', {
     id: t.text('id').primaryKey(),
@@ -12,7 +12,7 @@ export const users = pgTable('users', {
     email: t.text('email').notNull().unique(),
     emailVerified: t.boolean('email_verified').default(false).notNull(),
     company: t.text('company').notNull(),
-    companyImageUrl: t.text('company_image_url'),
+    companyImageUrl: t.text('companyImageUrl'),
     role: t.text('role').$type<UserRole>().default('user').notNull(),
     isActive: t.boolean('is_active').default(true).notNull(),
     createdAt: t.timestamp('created_at').notNull(),
@@ -70,21 +70,6 @@ export const verifications = pgTable('verifications', {
     (table) => [t.index('verifications_identifier_idx').on(table.identifier)],
 );
 
-// ─── Relations ────────────────────────────────────────────────────────────────
-
-export const usersRelations = relations(users, ({ many, one }) => ({
-    sessions: many(sessions),
-    accounts: many(accounts),
-}));
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-    user: one(users, { fields: [sessions.userId], references: [users.id] }),
-}));
-
-export const accountsRelations = relations(accounts, ({ one }) => ({
-    user: one(users, { fields: [accounts.userId], references: [users.id] }),
-}));
-
 const schemaTables = {
     users,
     sessions,
@@ -94,15 +79,3 @@ const schemaTables = {
 
 export const Schema = schemaTables;
 export type Schema = typeof schemaTables;
-
-export const Relations = {
-    usersRelations,
-    sessionsRelations,
-    accountsRelations,
-};
-
-export const DbSchema = {
-    ...Schema,
-    ...Relations,
-};
-export type DbSchema = typeof DbSchema;

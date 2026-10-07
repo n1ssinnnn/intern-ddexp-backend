@@ -1,5 +1,7 @@
+import { db } from '../db';
 import { Schema } from '../db/schema'
 import type { User } from '../domains/entities/user';
+import { isNull } from 'drizzle-orm';
 
 type UserQueryRow = typeof Schema.users.$inferSelect
 
@@ -23,5 +25,14 @@ export class UserRepository {
             updatedAt: row.updatedAt,
             deletedAt: row.deletedAt,
         };
+    }
+
+    async findAll(): Promise<User[]> {
+        const rows = await db
+            .select()
+            .from(this.table)
+            .where(isNull(this.table.deletedAt));
+
+        return rows.map((row) => this.mapToEntity(row));
     }
 }

@@ -3,6 +3,7 @@ import cors from '@elysia/cors'
 import openapi from "@elysia/openapi";
 import { auth } from "./lib/auth";
 import { authRoute } from "./routers/auth-route";
+import { userRoute } from "./routers/user-route";
 
 const app = new Elysia()
   .onError(({ code, error, set }) => {
@@ -66,6 +67,7 @@ const app = new Elysia()
         },
         tags: [
           { name: 'Auth', description: 'Authentication endpoints' },
+          { name: 'User', description: 'User management' },
         ],
       },
     }),
@@ -75,7 +77,7 @@ const app = new Elysia()
   .mount(auth.handler)
 
   // API routes 
-  .group('/api/v1', (app) => app.use(authRoute))
+  .group('/api/v1', (app) => app.use(authRoute).use(userRoute))
 
   .listen(3001);
 

@@ -13,7 +13,7 @@ const errorResponse = t.Object({
 export const authRoute = new Elysia({
     prefix: '/auth',
     detail: {
-        tags: ['auth']
+        tags: ['Auth']
     }
 })
 
