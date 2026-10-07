@@ -84,10 +84,11 @@ export class UserRepository {
         );
     }
 
-    async update(id: string, input: UpdateUserInput): Promise<User> {
+    async update(id: string, input: UpdateUserInput): Promise<User | null> {
         const result = await db.update(users).set({
             firstName: input.firstName,
             lastName: input.lastName,
+            name: `${input.firstName} ${input.lastName}`,
             email: input.email,
             company: input.company,
             role: input.role as UserRole,
@@ -96,8 +97,8 @@ export class UserRepository {
             .where(and(eq(users.id, id), isNull(users.deletedAt)))
             .returning();
 
-        const user = this.mapToEntity(result as any)
-        return user
+        if (result.length === 0) return null;
+        return this.findById(id);
     }
 
     async delete(id: string): Promise<void> {

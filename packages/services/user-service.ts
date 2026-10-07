@@ -44,10 +44,13 @@ export class UserService {
 
         // Update 
         try {
-            const result = await this.userRepo.update(id, {
+            const updatedUser = await this.userRepo.update(id, {
                 ...input
             })
-            return result;
+            if (!updatedUser) {
+                throw new Error('User not found');
+            }
+            return updatedUser;
         }
 
 
