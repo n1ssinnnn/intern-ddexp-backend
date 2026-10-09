@@ -1,12 +1,14 @@
 import { db } from '../db';
-import { Schema, users } from '../db/schema'
-import type { User } from '../domains/entities/user';
-import { and, eq, isNull } from 'drizzle-orm';
+import { accounts, Schema, users } from '../db/schema'
+import type { CreateUserRequest, UpdateUserInput } from '../domains/dto/user';
+import { ORDER_DIRECTION, type OrderingParams, type PagingParams, type PagingResult } from '../domains/entities/common';
+import type { User, UserRole } from '../domains/entities/user';
+import { and, eq, isNull, count } from 'drizzle-orm';
+import { buildPagingResult } from '../domains/helper/paging';
 
 type UserQueryRow = typeof Schema.users.$inferSelect
 
 export class UserRepository {
-    private readonly table = Schema.users;
 
     mapToEntity(row: UserQueryRow): User {
         return {
@@ -57,13 +59,56 @@ export class UserRepository {
         return this.mapToEntity(row as UserQueryRow);
     }
 
-    async findAll(): Promise<User[]> {
-        const rows = await db.query.users.findMany({
-            where: {
-                deletedAt: { isNull: true }
-            }
-        })
+    async findAll(paging: PagingParams, ordering: OrderingParams<User>): Promise<PagingResult<User>> {
+        const orderByKey =
+            ordering.orderBy as keyof typeof Schema.users.$inferSelect;
+        const isAsc = ordering.orderDirection === ORDER_DIRECTION.ASC;
 
-        return rows.map((row) => this.mapToEntity(row as UserQueryRow));
+        const [rows, countResult] = await Promise.all([
+            db.query.users.findMany({
+                where: {
+                    deletedAt: { isNull: true }
+                },
+                orderBy: (users, { asc, desc }) =>
+                    isAsc ? asc(users[orderByKey]) : desc(users[orderByKey]),
+                limit: paging.perPage,
+                offset: (paging.page - 1) * paging.perPage,
+            }),
+            db.select({ total: count() }).from(users).where(isNull(users.deletedAt))
+        ])
+
+        return buildPagingResult(
+            rows.map((row) => this.mapToEntity(row as UserQueryRow)),
+            Number(countResult[0]?.total ?? 0),
+            paging,
+        );
+    }
+
+    async update(id: string, input: UpdateUserInput): Promise<User | null> {
+        const result = await db.update(users).set({
+            firstName: input.firstName,
+            lastName: input.lastName,
+            name: `${input.firstName} ${input.lastName}`,
+            email: input.email,
+            company: input.company,
+            role: input.role as UserRole,
+            updatedAt: new Date(),
+        })
+            .where(and(eq(users.id, id), isNull(users.deletedAt)))
+            .returning();
+
+        if (result.length === 0) return null;
+        return this.findById(id);
+    }
+
+    async delete(id: string): Promise<void> {
+        await db.update(users).set({
+            isActive: false,
+            deletedAt: new Date(),
+            updatedAt: new Date(),
+        })
+            .where(and(eq(users.id, id), isNull(users.deletedAt)));
+
+        await db.delete(accounts).where(eq(accounts.accountId, id));
     }
 }

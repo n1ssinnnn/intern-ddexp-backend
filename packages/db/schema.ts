@@ -14,6 +14,9 @@ export const users = pgTable('users', {
     companyImageUrl: t.text('companyImageUrl'),
     role: t.text('role').$type<UserRole>().default('user').notNull(),
     isActive: t.boolean('is_active').default(true).notNull(),
+    banned: t.boolean('banned').default(false),
+    banReason: t.text('ban_reason'),
+    banExpires: t.timestamp('ban_expires'),
     createdAt: t.timestamp('created_at').notNull(),
     updatedAt: t.timestamp('updated_at')
         .$onUpdate(() => new Date())
@@ -32,6 +35,7 @@ export const sessions = pgTable('sessions', {
     updatedAt: t.timestamp('updated_at')
         .$onUpdate(() => new Date())
         .notNull(),
+    impersonatedBy: t.text('impersonated_by'),
 },
     (table) => [t.index('sessions_user_id_idx').on(table.userId)],
 );

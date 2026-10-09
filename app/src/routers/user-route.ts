@@ -1,5 +1,8 @@
 import { Elysia, t } from 'elysia'
-import { userService } from '../service-di';
+import { authService, userService } from '../service-di';
+import { createUserRequest, listUsersQuery, updateUserRequest, userIdParams } from '../requests/user';
+import { OrderDirection, OrderingParams } from '../../../packages/domains/entities/common';
+import { User } from '../../../packages/domains/entities/user';
 
 const errorResponse = t.Object({
     error: t.String(),
@@ -17,13 +20,38 @@ export const userRoute = new Elysia({
     }
 })
 
-    .post('/create', '')
-
-    .get('/getAll',
-        async () => {
-            return userService.getAllUsers();
+    .post('/create',
+        async ({ body, request: { headers } }) => {
+            return authService.createUserByAdmin(body, headers);
         },
         {
+            body: createUserRequest,
+            response: {
+                401: errorResponse,
+                409: errorResponse,
+                422: errorResponse,
+                500: errorResponse,
+            },
+        },
+
+
+    )
+
+    .get('/',
+        async ({ query }) => {
+            const paging = {
+                page: Number(query.page),
+                perPage: Number(query.perPage),
+            };
+            const order: OrderingParams<User> = {
+                orderBy: query.orderBy as keyof User,
+                orderDirection: query.orderDirection as OrderDirection,
+            };
+            const users = userService.getAllUsers(paging, order);
+            return users;
+        },
+        {
+            query: listUsersQuery,
             response: {
                 401: errorResponse,
                 409: errorResponse,
@@ -33,8 +61,48 @@ export const userRoute = new Elysia({
         }
     )
 
-    .get('/getById', '')
+    .get('/:id',
+        async ({ params }) => {
+            return userService.getUserById(params.id);
+        },
+        {
+            params: userIdParams,
+            response: {
+                401: errorResponse,
+                409: errorResponse,
+                422: errorResponse,
+                500: errorResponse,
+            },
+        }
+    )
 
-    .patch('/edit', '')
+    .put('/:id',
+        async ({ params, body }) => {
+            return userService.editUser(params.id, body)
+        },
+        {
+            params: userIdParams,
+            body: updateUserRequest,
+            response: {
+                401: errorResponse,
+                409: errorResponse,
+                422: errorResponse,
+                500: errorResponse,
+            },
+        }
+    )
 
-    .delete('/', '')
+    .delete('/:id',
+        async ({ params }) => {
+            return userService.deleteUser(params.id);
+        },
+        {
+            response: {
+                401: errorResponse,
+                409: errorResponse,
+                422: errorResponse,
+                500: errorResponse,
+            },
+            params: userIdParams
+        }
+    )
