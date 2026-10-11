@@ -1,8 +1,8 @@
 import type { UpdateUserInput } from "../domains/dto/user";
 import type { OrderingParams, PagingParams, PagingResult } from "../domains/entities/common";
 import type { User } from "../domains/entities/user";
+import { Errors } from "../domains/errors";
 import type { UserRepository } from "../repositories/user-repo";
-import { createHttpError } from "./auth-service";
 
 export class UserService {
     constructor(
@@ -15,8 +15,14 @@ export class UserService {
             return users
         }
 
-        catch (err: unknown) {
-            throw createHttpError(err, "Cannot find users", 500);
+        catch (error: unknown) {
+            if (error instanceof Errors.ApiError) throw error;
+            const err = error as {
+                statusCode?: number;
+                status?: number;
+                message?: string;
+            }
+            throw new Errors.InternalServerError(err?.message ?? 'Failed to get all users')
         }
     }
 
@@ -24,22 +30,28 @@ export class UserService {
         try {
             const user = await this.userRepo.findById(id);
             if (!user) {
-                throw new Error('User not found')
+                throw new Errors.NotFound('User not found')
             }
             return user
         }
 
-        catch (err: unknown) {
-            throw createHttpError(err, "Cannot find user", 500);
+        catch (error: unknown) {
+            if (error instanceof Errors.ApiError) throw error;
+            const err = error as {
+                statusCode?: number;
+                status?: number;
+                message?: string;
+            }
+            throw new Errors.InternalServerError(err?.message ?? 'Failed to get user by id')
         }
     }
 
     async editUser(id: string, input: UpdateUserInput): Promise<User> {
 
         // Email exist
-        const hasExistingEmail = await this.userRepo.findByEmail(input.email)
-        if (hasExistingEmail) {
-            throw new Error('This email is already registered.');
+        const existingUser = await this.userRepo.findByEmail(input.email);
+        if (existingUser && existingUser.id !== id) {
+            throw new Errors.Conflict('This email is already registered.');
         }
 
         // Update 
@@ -48,29 +60,43 @@ export class UserService {
                 ...input
             })
             if (!updatedUser) {
-                throw new Error('User not found');
+                throw new Errors.NotFound('User not found');
             }
             return updatedUser;
         }
 
 
-        catch (err: unknown) {
-            throw createHttpError(err, "Error", 500);
+        catch (error: unknown) {
+            if (error instanceof Errors.ApiError) throw error;
+            const err = error as {
+                statusCode?: number;
+                status?: number;
+                message?: string;
+            }
+            throw new Errors.InternalServerError(err?.message ?? 'Failed to update user')
         }
     }
 
     async deleteUser(id: string): Promise<void> {
+
+        //Check if user exists
         const user = await this.userRepo.findById(id);
         if (!user) {
-            throw new Error('User not found')
+            throw new Errors.NotFound('User not found');
         }
 
         try {
             await this.userRepo.delete(id)
         }
 
-        catch (err: unknown) {
-            throw createHttpError(err, "Error", 500);
+        catch (error: unknown) {
+            if (error instanceof Errors.ApiError) throw error;
+            const err = error as {
+                statusCode?: number;
+                status?: number;
+                message?: string;
+            }
+            throw new Errors.InternalServerError(err?.message ?? 'Failed to delete user')
         }
     }
 }

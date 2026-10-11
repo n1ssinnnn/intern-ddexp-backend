@@ -2,15 +2,6 @@ import { Elysia, t } from 'elysia'
 import { authService } from '../service-di'
 import { signInRequest, signUpRequest } from '../requests/auth';
 
-const errorResponse = t.Object({
-    error: t.String(),
-    message: t.String(),
-    details: t.Optional(t.Array(t.Object({
-        path: t.String(),
-        message: t.String(),
-    }))),
-});
-
 export const authRoute = new Elysia({
     prefix: '/auth',
     detail: {
@@ -24,11 +15,6 @@ export const authRoute = new Elysia({
         },
         {
             body: signUpRequest,
-            response: {
-                409: errorResponse,
-                422: errorResponse,
-                500: errorResponse,
-            },
         }
     )
 
@@ -38,20 +24,9 @@ export const authRoute = new Elysia({
         },
         {
             body: signInRequest,
-            response: {
-                401: errorResponse,
-                409: errorResponse,
-                422: errorResponse,
-                500: errorResponse,
-            },
         }
     )
 
     .post('/sign-out', async ({ request: { headers } }) => {
         return authService.signOut(headers);
-    }, {
-        response: {
-            401: errorResponse,
-            500: errorResponse,
-        },
     });
